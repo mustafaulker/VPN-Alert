@@ -1,10 +1,12 @@
-import os
+import copy
+import time
+import urllib.request
 
 from PyQt6.QtCore import QUrl
 from PyQt6.QtMultimedia import QSoundEffect
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
 
-public_ip = os.popen("nslookup myip.opendns.com resolver1.opendns.com").read().split()[-1]
+external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
 
 
 class Main(QMainWindow):
@@ -16,6 +18,7 @@ class Main(QMainWindow):
         effect.setSource(QUrl.fromLocalFile("beep.wav"))
         effect.setLoopCount(-2)
 
+        global start_button
         start_button = QPushButton("Start")
         start_button.clicked.connect(self.start)
 
@@ -24,14 +27,24 @@ class Main(QMainWindow):
         self.setCentralWidget(start_button)
 
     def start(self):
-        global public_ip
-        current_public_ip = ""
-        print("Activated")
+        if start_button.isChecked():
+            start_button.setText("Stop")
 
-        while current_public_ip in public_ip:
-            current_public_ip = os.popen("nslookup myip.opendns.com resolver1.opendns.com").read().split()[-1]
-        print(public_ip, current_public_ip)
-        effect.play()
+            global external_ip
+            current_external_ip = copy.copy(external_ip)
+            
+            print("Alert has activated at: " + time.strftime("%H:%M:%S"))
+
+            while current_external_ip == external_ip:
+                current_external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
+                time.sleep(2)
+
+            print("Discconected from VPN at: " + time.strftime("%H:%M:%S"))
+            effect.play()
+        else:
+            effect.stop()
+            start_button.setText("Start")
+            print("Alert has deactivated at: " + time.strftime("%H:%M:%S"))
 
 
 app = QApplication([])
