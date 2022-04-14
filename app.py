@@ -1,4 +1,5 @@
 import copy
+import sys
 import time
 import urllib.request
 
@@ -38,6 +39,8 @@ class Main(QMainWindow):
 
         layout.addWidget(self.textArea)
         layout.addWidget(self.activate_button)
+        layout.setSpacing(20)
+        layout.setContentsMargins(20, 20, 20, 20)
 
         w = QWidget()
         w.setLayout(layout)
@@ -50,21 +53,20 @@ class Main(QMainWindow):
 
             global external_ip
             current_external_ip = copy.copy(external_ip)
-
-            print("Alert has activated at: " + time.strftime("%H:%M:%S"))
+            self.textArea.append("Alert has activated at: " + time.strftime("%H:%M:%S"))
 
             while current_external_ip == external_ip:
                 current_external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
                 time.sleep(2)
 
-            print("Disconnected from the VPN at: " + time.strftime("%H:%M:%S"))
+            self.textArea.append("Disconnected from the VPN at: " + time.strftime("%H:%M:%S"))
             self.effect.play()
         else:
             self.effect.stop()
             self.activate_button.setText("Activate")
-            print("Alert has deactivated at: " + time.strftime("%H:%M:%S"))
+            self.textArea.append("Alert has deactivated at: " + time.strftime("%H:%M:%S"))
 
 
-app = QApplication([])
+app = QApplication(sys.argv)
 window = Main()
 app.exec()
